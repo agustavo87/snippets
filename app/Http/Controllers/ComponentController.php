@@ -24,11 +24,16 @@ class ComponentController extends Controller
         }
         $view = str_contains($fullPath, '.html') ? $fullPath : $fullPath . '.html';
         if (file_exists($view)) {
-            return view('html.render', [
+            $data = [
+                'c' => $relPath,
                 'html' => file_get_contents($view),
                 'path' => dirname($relPath),
                 'file' => basename($view, '.html')
-            ]);
+            ];
+            if ($request->input('html') == 'true') {
+                return view('html.render', $data);
+            }
+            return view('html.present', $data);
         }
         if (is_dir($fullPath)) {
             $files = scandir($fullPath);
