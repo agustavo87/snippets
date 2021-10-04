@@ -5,4 +5,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/components');
 
-Route::get('components', ComponentController::class);
+Route::get('components', ComponentController::class)->name('components');

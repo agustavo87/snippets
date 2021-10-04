@@ -14,11 +14,9 @@ class ComponentController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $response = "<h1> Respuesta </h1> \n";
         $relPath = $request->input('c', '');
         $base = resource_path('html');
         $fullPath =  realpath($base . '/' . $relPath);
-        // dd($relPath, $base, $fullPath);
         if (strlen($fullPath) > strlen($base)) {
             $relPath = str_replace($base . '\\', '', $fullPath);
         } else {
@@ -26,8 +24,6 @@ class ComponentController extends Controller
         }
         $view = str_contains($fullPath, '.html') ? $fullPath : $fullPath . '.html';
         if (file_exists($view)) {
-            $html = file_get_contents($view);
-            // dd('file exists', $html);
             return view('html.render', [
                 'html' => file_get_contents($view),
                 'path' => dirname($relPath),
@@ -40,16 +36,16 @@ class ComponentController extends Controller
             $links =   array_map(function ($value) use ($relPath) {
                 return $relPath . '/' . $value;
             }, $files);
-
-            $response .= "<ul>\n";
+            $href = [];
             foreach ($links as $link) {
-                $response .= "<li>";
-                $response .= "<a href='/components?c={$link}'> $link </a>";
-                $response .= "</li>\n";
+                $href[$link] = route('components', ['c' => $link]);
             }
-            $response .= "</ul>\n";
-            return $response;
+            return view('twcomponents.index', [
+                'links' => $href
+            ]);
         }
-        return 'directorio inválido';
+        return view('twcomponents.index', [
+            'links' => []
+        ]);
     }
 }
