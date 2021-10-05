@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Arete\Snippets\SnippetManager;
 use Illuminate\Http\Request;
 
 class ComponentController extends Controller
 {
+    protected SnippetManager $snippets;
+
+    public function __construct()
+    {
+        $this->snippets = new SnippetManager(resource_path('html'));
+    }
     /**
      * Handle the incoming request.
      *
@@ -14,36 +21,18 @@ class ComponentController extends Controller
      */
     public function __invoke(Request $request)
     {
-        $relPath = $request->input('c', '');
-        $base = resource_path('html');
-        $fullPath =  realpath($base . '/' . $relPath);
-        if (strlen($fullPath) > strlen($base)) {
-            $relPath = str_replace($base . '\\', '', $fullPath);
-        } else {
-            $relPath = '';
-        }
-        $view = str_contains($fullPath, '.html') ? $fullPath : $fullPath . '.html';
-        if (file_exists($view)) {
-            $data = [
-                'c' => $relPath,
-                'html' => file_get_contents($view),
-                'path' => dirname($relPath),
-                'file' => basename($view, '.html')
-            ];
+        $this->snippets->setPath($request->input('path', ''));
+
+        if ($this->snippets->getSnippetPath()) {
+            $data = $this->snippets->getData();
             if ($request->input('html') == 'true') {
                 return view('html.render', $data);
             }
             return view('html.present', $data);
-        }
-        if (is_dir($fullPath)) {
-            $files = scandir($fullPath);
-            array_shift($files);
-            $links =   array_map(function ($value) use ($relPath) {
-                return $relPath . '/' . $value;
-            }, $files);
+        } elseif ($this->snippets->isDir()) {
             $href = [];
-            foreach ($links as $link) {
-                $href[$link] = route('components', ['c' => $link]);
+            foreach ($this->snippets->links() as $link) {
+                $href[$link] = route('components', ['path' => $link]);
             }
             return view('twcomponents.index', [
                 'links' => $href
