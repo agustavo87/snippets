@@ -72,18 +72,28 @@ class SnippetManager
         return $this->snippetPath;
     }
 
+    public function getPathStructure($path): array
+    {
+        return array_reduce(explode('/', $path), function ($carry, $item) {
+            $carry[] = end($carry) . $item . '/';
+            return $carry;
+        }, ['/']);
+    }
+
     public function getData()
     {
         if (!$this->snippetPath) {
             return null;
         }
+        $path = str_replace('\\', '/', dirname($this->relPath));
         $file = basename($this->snippetPath, '.html');
         return [
             'relativePath' => $this->relPath,
             'html' => file_get_contents($this->snippetPath),
-            'path' => dirname($this->relPath),
+            'path' => $path,
             'file' => $file,
-            'title' => ucwords(str_replace('_', ' ', $file))
+            'title' => ucwords(str_replace('_', ' ', $file)),
+            'pathStructure' => $this->getPathStructure($path)
         ];
     }
 

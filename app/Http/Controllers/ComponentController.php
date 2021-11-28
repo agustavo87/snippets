@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Path;
 use Arete\Snippets\SnippetManager;
 use Illuminate\Http\Request;
 
@@ -28,6 +29,13 @@ class ComponentController extends Controller
             if ($request->input('html') == 'true') {
                 return view('html.render', $data);
             }
+            $path = Path::firstWhere('path', $data['relativePath']);
+            if ($path) {
+                $attributes = $path->attributes->pluck('value', 'name')->all();
+            } else {
+                $attributes = Path::DEFAULT_ATTRIBUTES;
+            }
+            $data['attributes'] = $attributes;
             return view('html.present', $data);
         } elseif ($this->snippets->isDir()) {
             $href = [];
